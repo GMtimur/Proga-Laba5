@@ -109,6 +109,14 @@ void printStudentInfo(Student* students, int N) {
     }
 }
 
+void printGroupStats(GroupStats* groupStats, int groupCount) {
+    for (int i = 0; i < groupCount; ++i) {
+        cout << groupStats[i].group << " - "
+             << groupStats[i].studentCount << " - "
+             << groupStats[i].failCount << endl;
+    }
+}
+
 void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& groupCount, int& groupStatsCapacity) {
     for (int i = 0; i < N; ++i) {
         bool found = false;
@@ -212,7 +220,10 @@ int main(int argc, char* argv[]) {
     if (isHuman) {
         printGroupStatsTable(groupStats, groupCount);
     }
-    
+    else{
+        printGroupStats(groupStats, groupCount);
+    }
+
     for (int i = 0; i < N; ++i) {
         delete[] students[i].name;
         delete[] students[i].group;
