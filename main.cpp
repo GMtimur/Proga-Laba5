@@ -29,17 +29,12 @@ struct GroupStats {
 };
 
 void printStudentTable(Student* students, int N) {
-    // Заголовок таблицы
     cout << "| " << setw(6) << "Группа" << " | " << setw(30) << "ФИО" << " | ";
     for (int i = 0; i < SUBJECT_COUNT; ++i) {
         cout << setw(3) << i + 1 << " ";
     }
     cout << "| " << setw(8) << "Средний балл" << " |" << endl;
-
-    // Разделитель
     cout << "|--------|-----------------------------|------------------------------------|" << endl;
-
-    // Данные студентов
     for (int i = 0; i < N; ++i) {
         cout << "| " << setw(6) << students[i].group << " | "
              << setw(30) << students[i].name << " | ";
@@ -51,16 +46,10 @@ void printStudentTable(Student* students, int N) {
     cout << "|--------|-----------------------------|------------------------------------|" << endl;
 }
 
-// Функция для вывода статистики по группам в табличном виде
 void printGroupStatsTable(GroupStats* groupStats, int groupCount) {
-    // Заголовок таблицы
     cout << "| " << setw(6) << "Группа" << " | " << setw(15) << "Студентов" << setw(9) <<" | "
          << setw(25) << "Двоечников" << " |" << endl;
-
-    // Разделитель
     cout << "|--------|-----------------|-----------------|" << endl;
-
-    // Статистика по группам
     for (int i = 0; i < groupCount; ++i) {
         cout << "| " << setw(6) << groupStats[i].group << " | "
              << setw(15) << groupStats[i].studentCount << " | "
@@ -103,8 +92,6 @@ void printStudentInfo(Student* students, int N) {
         cout << endl;
     }
 }
-
-
 
 void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& groupCount) {
     for (int i = 0; i < N; ++i) {
