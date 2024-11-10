@@ -5,6 +5,7 @@
 using namespace std;
 
 const int SUBJECT_COUNT = 5;
+const int NAME_LENGTH = 50;
 
 struct Student {
     char* name;    
@@ -25,7 +26,6 @@ struct GroupStats {
     int group;
     int studentCount;
     int failCount;
-    float totalAverageScore;
 };
 
 void printStudentTable(Student* students, int N) {
@@ -35,9 +35,11 @@ void printStudentTable(Student* students, int N) {
     }
     cout << "| " << setw(8) << "Средний балл" << " |" << endl;
     cout << "|--------|-----------------------------|------------------------------------|" << endl;
+    int maxlen = 0;
+    for(int i = 0; i < N; ++i) if(maxlen < strlen(students[i].name)) maxlen = strlen(students[i].name);
     for (int i = 0; i < N; ++i) {
-        cout << "| " << setw(6) << students[i].group << " | "
-             << setw(30) << students[i].name << " | ";
+        int padding = maxlen - strlen(students[i].name) - 1;
+        cout << "| " << setw(6) << students[i].group << " | " << setw(30) << students[i].name << setw(padding) << " | ";
         for (int j = 0; j < SUBJECT_COUNT; ++j) {
             cout << setw(3) << students[i].marks[j] << " ";
         }
@@ -47,8 +49,7 @@ void printStudentTable(Student* students, int N) {
 }
 
 void printGroupStatsTable(GroupStats* groupStats, int groupCount) {
-    cout << "| " << setw(6) << "Группа" << " | " << setw(15) << "Студентов" << setw(9) <<" | "
-         << setw(25) << "Двоечников" << " |" << endl;
+    cout << "| " << setw(6) << "Группа" << " | " << setw(15) << "Студентов" << setw(9) <<" | " << setw(25) << "Двоечников" << " |" << endl;
     cout << "|--------|-----------------|-----------------|" << endl;
     for (int i = 0; i < groupCount; ++i) {
         cout << "| " << setw(6) << groupStats[i].group << " | "
@@ -101,7 +102,6 @@ void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& g
             if (groupStats[j].group == group) {
                 found = true;
                 groupStats[j].studentCount++;
-                groupStats[j].totalAverageScore += students[i].average;
                 for (int k = 0; k < SUBJECT_COUNT; ++k) {
                     if (students[i].marks[k] == 2) {
                         groupStats[j].failCount++;
@@ -115,7 +115,6 @@ void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& g
             groupStats[groupCount].group = group;
             groupStats[groupCount].studentCount = 1;
             groupStats[groupCount].failCount = 0;
-            groupStats[groupCount].totalAverageScore = students[i].average;
             for (int k = 0; k < SUBJECT_COUNT; ++k) {
                 if (students[i].marks[k] == 2) {
                     groupStats[groupCount].failCount = 1;
@@ -148,16 +147,16 @@ void printGroupStats(GroupStats* groupStats, int groupCount) {
 }
 
 int main(int argc, char* argv[]) {
-    setlocale(LC_CTYPE, "rus");
+    setlocale(LC_ALL, "RU");
     bool isHuman = (argc <= 1 || strcmp(argv[1], "false") != 0);
     int N;
     cin >> N;
     Student* students = new Student[N];
     int maxGroup = 0;
     for (int i = 0; i < N; ++i) {
-        students[i].name = new char[100];
+        students[i].name = new char[60];
         cin.ignore();
-        cin.getline(students[i].name, 100);
+        cin.getline(students[i].name, 60);
         cin >> students[i].group;
         if (students[i].group > maxGroup) {
             maxGroup = students[i].group;
