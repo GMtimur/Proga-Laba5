@@ -5,27 +5,33 @@
 using namespace std;
 
 const int SUBJECT_COUNT = 5;
-const int NAME_LENGTH = 50;
+const int NAME_LENGTH = 60;
 
 struct Student {
     char* name;    
-    int group;   
+    char* group;
     int marks[SUBJECT_COUNT];
     float average;        
 
-    void computeAverage() {
+    void computeAverage(bool &anyStudentAbove4) {
         float sum = 0;
         for (int i = 0; i < SUBJECT_COUNT; ++i) {
             sum += marks[i];
         }
         average = sum / SUBJECT_COUNT;
+
+        if (average > 4.0) {
+            anyStudentAbove4 = true;
+        }
     }
 };
 
 struct GroupStats {
-    int group;
+    char* group;
     int studentCount;
     int failCount;
+
+    GroupStats() : studentCount(0), failCount(0), group(nullptr) {}
 };
 
 void printStudentTable(Student* students, int N) {
@@ -35,27 +41,36 @@ void printStudentTable(Student* students, int N) {
     }
     cout << "| " << setw(8) << "Средний балл" << " |" << endl;
     cout << "|--------|-----------------------------|------------------------------------|" << endl;
+
     int maxlen = 0;
-    for(int i = 0; i < N; ++i) if(maxlen < strlen(students[i].name)) maxlen = strlen(students[i].name);
+    for (int i = 0; i < N; ++i) {
+        maxlen = max(maxlen, (int)strlen(students[i].name));
+    }
+
     for (int i = 0; i < N; ++i) {
         int padding = maxlen - strlen(students[i].name) - 1;
-        cout << "| " << setw(6) << students[i].group << " | " << setw(30) << students[i].name << setw(padding) << " | ";
+        cout << "| " << setw(6) << students[i].group << " | " 
+             << setw(maxlen) << left << students[i].name << " | ";
         for (int j = 0; j < SUBJECT_COUNT; ++j) {
             cout << setw(3) << students[i].marks[j] << " ";
         }
         cout << "| " << setw(8) << fixed << setprecision(1) << students[i].average << setw(6) << " |" << endl;
     }
+
     cout << "|--------|-----------------------------|------------------------------------|" << endl;
 }
 
 void printGroupStatsTable(GroupStats* groupStats, int groupCount) {
-    cout << "| " << setw(6) << "Группа" << " | " << setw(15) << "Студентов" << setw(9) <<" | " << setw(25) << "Двоечников" << " |" << endl;
+    cout << "| " << setw(6) << "Группа" << " | " << setw(15) << "Студентов" << setw(9) << " | "
+         << setw(25) << "Двоечников" << " |" << endl;
     cout << "|--------|-----------------|-----------------|" << endl;
+
     for (int i = 0; i < groupCount; ++i) {
         cout << "| " << setw(6) << groupStats[i].group << " | "
              << setw(15) << groupStats[i].studentCount << " | "
              << setw(15) << groupStats[i].failCount << " |" << endl;
     }
+
     cout << "|--------|-----------------|-----------------|" << endl;
 }
 
@@ -63,7 +78,7 @@ void sortByGroup(Student* students, int N) {
     for (int i = 1; i < N; ++i) {
         Student key = students[i];
         int j = i - 1;
-        while (j >= 0 && students[j].group > key.group) {
+        while (j >= 0 && strcmp(students[j].group, key.group) > 0) {
             students[j + 1] = students[j];
             --j;
         }
@@ -94,12 +109,11 @@ void printStudentInfo(Student* students, int N) {
     }
 }
 
-void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& groupCount) {
+void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& groupCount, int& groupStatsCapacity) {
     for (int i = 0; i < N; ++i) {
-        int group = students[i].group;
         bool found = false;
         for (int j = 0; j < groupCount; ++j) {
-            if (groupStats[j].group == group) {
+            if (strcmp(groupStats[j].group, students[i].group) == 0) {
                 found = true;
                 groupStats[j].studentCount++;
                 for (int k = 0; k < SUBJECT_COUNT; ++k) {
@@ -111,8 +125,19 @@ void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& g
                 break;
             }
         }
+
         if (!found) {
-            groupStats[groupCount].group = group;
+            if (groupCount == groupStatsCapacity) {
+                groupStatsCapacity *= 2;
+                GroupStats* newGroupStats = new GroupStats[groupStatsCapacity];
+                for (int k = 0; k < groupCount; ++k) {
+                    newGroupStats[k] = groupStats[k];
+                }
+                delete[] groupStats;
+                groupStats = newGroupStats;
+            }
+
+            groupStats[groupCount].group = students[i].group;
             groupStats[groupCount].studentCount = 1;
             groupStats[groupCount].failCount = 0;
             for (int k = 0; k < SUBJECT_COUNT; ++k) {
@@ -126,7 +151,7 @@ void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& g
     }
 }
 
-void sortByFailCount(GroupStats* groupStats, int groupCount) {
+void sortGroupStatsByFailCountDesc(GroupStats* groupStats, int groupCount) {
     for (int i = 1; i < groupCount; ++i) {
         GroupStats key = groupStats[i];
         int j = i - 1;
@@ -138,64 +163,59 @@ void sortByFailCount(GroupStats* groupStats, int groupCount) {
     }
 }
 
-void printGroupStats(GroupStats* groupStats, int groupCount) {
-    for (int i = 0; i < groupCount; ++i) {
-        cout << groupStats[i].group << " - "
-             << groupStats[i].studentCount << " - "
-             << groupStats[i].failCount << endl;
-    }
-}
-
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "RU");
     bool isHuman = (argc <= 1 || strcmp(argv[1], "false") != 0);
+
     int N;
     cin >> N;
+
     Student* students = new Student[N];
-    int maxGroup = 0;
+    int groupStatsCapacity = 10;
+    GroupStats* groupStats = new GroupStats[groupStatsCapacity];
+    int groupCount = 0;
+    bool anyStudentAbove4 = false;
     for (int i = 0; i < N; ++i) {
-        students[i].name = new char[60];
+        students[i].name = new char[NAME_LENGTH];
+        students[i].group = new char[NAME_LENGTH];
         cin.ignore();
-        cin.getline(students[i].name, 60);
-        cin >> students[i].group;
-        if (students[i].group > maxGroup) {
-            maxGroup = students[i].group;
-        }
+        cin.getline(students[i].name, NAME_LENGTH);
+        cin.getline(students[i].group, NAME_LENGTH);
         for (int j = 0; j < SUBJECT_COUNT; ++j) {
             cin >> students[i].marks[j];
         }
-        students[i].computeAverage();
+        students[i].computeAverage(anyStudentAbove4);
     }
+
     sortByGroup(students, N);
-    if(!isHuman) printStudentInfo(students, N);
-    GroupStats* groupStats = new GroupStats[maxGroup];
-    int groupCount = 0;
-    computeGroupStats(students, N, groupStats, groupCount);
-    sortByFailCount(groupStats, groupCount);
+    if (!isHuman) printStudentInfo(students, N);
+
+    computeGroupStats(students, N, groupStats, groupCount, groupStatsCapacity);
+    sortGroupStatsByFailCountDesc(groupStats, groupCount);
+
     sortByAverageDesc(students, N);
-    if(isHuman){
+
+    if (isHuman) {
         printStudentTable(students, N);
-    } 
-    else{
-        bool anyStudentAbove4 = false;
-        for (int i = 0; i < N; ++i) {
-            if (students[i].average > 4.0) {
-                anyStudentAbove4 = true;
-                cout << students[i].group << ", " << students[i].name << " - " << students[i].average << endl;
+    } else {
+        if (anyStudentAbove4) {
+            for (int i = 0; i < N; ++i) {
+                if (students[i].average > 4.0) {
+                    cout << students[i].group << ", " << students[i].name << " - " << students[i].average << endl;
+                }
             }
-        }
-        if (!anyStudentAbove4) {
+        } else {
             cout << "NO" << endl;
         }
     }
-    if(isHuman){
+
+    if (isHuman) {
         printGroupStatsTable(groupStats, groupCount);
     }
-    else{
-        printGroupStats(groupStats, groupCount);
-    }
+    
     for (int i = 0; i < N; ++i) {
         delete[] students[i].name;
+        delete[] students[i].group;
     }
     delete[] students;
     delete[] groupStats;
