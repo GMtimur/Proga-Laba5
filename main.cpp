@@ -8,6 +8,32 @@ using namespace std;
 const int SUBJECT_COUNT = 5;
 const int NAME_LENGTH = 60;
 
+int myStrcmp(const char* a, const char* b) {
+    int result = 0;
+    while (*a == *b && *a != '\0') {
+        a++;
+        b++;
+    }
+    if (*a == '\0' && *b == '\0') {
+        return 0;
+    }
+    if (*a > *b) {
+        return 1;
+    } 
+    else {
+        return -1;
+    }
+}
+
+
+char* myStrcpy(char *b, char *str2)
+{
+    int i;
+    for(i = 0; str2[i]; i++) b[i] = str2[i];
+    //b[i] = '\0';
+    return b;
+}
+
 struct Student {
     char* name;
     char* group;
@@ -130,7 +156,7 @@ void sortByGroup(Student* students, int N) {
     for (int i = 1; i < N; ++i) {
         Student key = students[i];
         int j = i - 1;
-        while (j >= 0 && strcmp(students[j].group, key.group) > 0) {
+        while (j >= 0 && myStrcmp(students[j].group, key.group) > 0) {
             students[j + 1] = students[j];
             --j;
         }
@@ -169,11 +195,13 @@ void printGroupStats(GroupStats* groupStats, int groupCount) {
     }
 }
 
+
+
 void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& groupCount, int& groupStatsCapacity) {
     for (int i = 0; i < N; ++i) {
         bool found = false;
         for (int j = 0; j < groupCount; ++j) {
-            if (strcmp(groupStats[j].group, students[i].group) == 0) {
+            if (myStrcmp(groupStats[j].group, students[i].group) == 0) {
                 found = true;
                 groupStats[j].studentCount++;
                 for (int k = 0; k < SUBJECT_COUNT; ++k) {
@@ -198,7 +226,7 @@ void computeGroupStats(Student* students, int N, GroupStats*& groupStats, int& g
             }
 
             groupStats[groupCount].group = new char[strlen(students[i].group) + 1];
-            strcpy(groupStats[groupCount].group, students[i].group);
+            myStrcpy(groupStats[groupCount].group, students[i].group);
             groupStats[groupCount].studentCount = 1;
             groupStats[groupCount].failCount = 0;
             for (int k = 0; k < SUBJECT_COUNT; ++k) {
@@ -237,7 +265,7 @@ int ms(struct Student s[], int N, int maxsize)
 
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "RU");
-    bool isHuman = (argc <= 1 || strcmp(argv[1], "false") != 0);
+    bool isHuman = (argc <= 1 || myStrcmp(argv[1], "false") != 0);
 
     int N;
     cin >> N;
@@ -306,8 +334,8 @@ int main(int argc, char* argv[]) {
         printGroupStats(groupStats, groupCount);
     }
 
-    // Очистка памяти
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) 
+    {
         delete[] students[i].name;
         delete[] students[i].group;
         delete[] groupStats[i].group;
