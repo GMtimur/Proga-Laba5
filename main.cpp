@@ -40,12 +40,15 @@ struct Student {
     int marks[SUBJECT_COUNT];
     float average;
 
-    void computeAverage() {
+    void computeAverage(bool &anyStudentAbove4) {
         float sum = 0;
         for (int i = 0; i < SUBJECT_COUNT; ++i) {
             sum += marks[i];
         }
         average = sum / SUBJECT_COUNT;
+        if (average > 4.0) {
+            anyStudentAbove4 = true;
+        }
     }
 };
 
@@ -288,7 +291,7 @@ int main(int argc, char* argv[]) {
         for (int j = 0; j < SUBJECT_COUNT; ++j) {
             cin >> students[i].marks[j];
         }
-        students[i].computeAverage();
+        students[i].computeAverage(anyStudentAbove4);
     }
 
     sortByGroup(students, N);
