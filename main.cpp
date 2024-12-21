@@ -273,7 +273,7 @@ int ms(struct Student s[], int N, int maxsize)
 
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "RU");
-    bool isHuman = !(argc <= 1 || myStrcmp(argv[1], "false") != 0);
+    bool isHuman = (argc <= 1 || myStrcmp(argv[1], "false") != 0);
 
     int N;
     cin >> N;
