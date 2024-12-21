@@ -26,11 +26,12 @@ int myStrcmp(const char* a, const char* b) {
 }
 
 
-char* myStrcpy(char *b, char *str2)
-{
+char* myStrcpy(char* b, const char* str2) {
     int i;
-    for(i = 0; str2[i]; i++) b[i] = str2[i];
-    //b[i] = '\0';
+    for (i = 0; str2[i]; i++) {
+        b[i] = str2[i];
+    }
+    b[i] = '\0'; // Null-terminate the string
     return b;
 }
 
@@ -138,7 +139,11 @@ void tableGroup(struct GroupStats M[], int K){
 	cout << "____________________________________________________________" << endl;
 	for (int i = 0; i < K; i++)
 	{
-		cout << "|  " << M[i].group << "  ||";
+		if (M[i].group != nullptr) {
+            cout << "|  " << M[i].group << "  ||";
+        } else {
+            cout << "|  [UNKNOWN GROUP]  ||";
+        }
 		tab((18 - (to_string(M[i].studentCount)).size()) / 2, " ");
 		cout << M[i].studentCount;
 		tab((18 - (to_string(M[i].studentCount)).size()) / 2, " ");
@@ -268,7 +273,7 @@ int ms(struct Student s[], int N, int maxsize)
 
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "RU");
-    bool isHuman = (argc <= 1 || myStrcmp(argv[1], "false") != 0);
+    bool isHuman = !(argc <= 1 || myStrcmp(argv[1], "false") != 0);
 
     int N;
     cin >> N;
@@ -337,14 +342,18 @@ int main(int argc, char* argv[]) {
         printGroupStats(groupStats, groupCount);
     }
 
-    for (int i = 0; i < N; ++i) 
-    {
+    for (int i = 0; i < N; ++i) {
         delete[] students[i].name;
         delete[] students[i].group;
-        delete[] groupStats[i].group;
+    }
+    for (int i = 0; i < groupCount; ++i) {
+        if (groupStats[i].group != nullptr) {
+            delete[] groupStats[i].group;
+        }
     }
     delete[] students;
     delete[] groupStats;
+
 
     return 0;
 }
